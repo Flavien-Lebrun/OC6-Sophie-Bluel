@@ -179,6 +179,7 @@ function connectionStatus() {
   }
 }
 
+// Fonction pour afficher le Pop up d'édition des photos
 function editPopUp() {
   const main = document.querySelector("main");
   const overlayDiv = document.createElement("div");
@@ -216,52 +217,7 @@ function editPopUp() {
   divAddingPhotosInput.appendChild(addingPhotosInput);
 }
 
-function addingPhotosMode() {
-  console.log("Le bouton d'ajout d'une photo a été cliqué");
-  const main = document.querySelector("main");
-  const overlayAddingPhotosDiv = document.createElement("div");
-  overlayAddingPhotosDiv.id = "addingPhotosForm";
-  const navigationButtonsAddingPhotosDiv = document.createElement("div");
-  navigationButtonsAddingPhotosDiv.id = "navigationButtonsAddingPhotosDiv";
-  const returnToEditModeArrow = document.createElement("i");
-  returnToEditModeArrow.className = "fa-solid fa-arrow-left";
-  const exitAddingPhotosModeCross = document.createElement("i");
-  exitAddingPhotosModeCross.className = "fa-solid fa-xmark";
-  const addingPhotosModeTitle = document.createElement("h3");
-  addingPhotosModeTitle.textContent = "Ajout photo";
-  const addingPhotosDiv = document.createElement("div");
-  addingPhotosDiv.className = "addingPhotosDiv";
-  const returnToEditMode = function (event) {
-    main.removeChild(overlayAddingPhotosDiv);
-  };
-
-  const exitAddingPhotosMode = function (event) {
-    const overlayDiv = document.getElementById("edit__divOverlay");
-    const overlayEditDiv = document.getElementById("editForm");
-    main.removeChild(overlayAddingPhotosDiv);
-    main.removeChild(overlayDiv);
-    main.removeChild(overlayEditDiv);
-  };
-
-  main.appendChild(overlayAddingPhotosDiv);
-  overlayAddingPhotosDiv.appendChild(navigationButtonsAddingPhotosDiv);
-  navigationButtonsAddingPhotosDiv.appendChild(returnToEditModeArrow);
-  navigationButtonsAddingPhotosDiv.appendChild(exitAddingPhotosModeCross);
-  overlayAddingPhotosDiv.appendChild(addingPhotosModeTitle);
-  overlayAddingPhotosDiv.appendChild(addingPhotosDiv);
-
-  returnToEditModeArrow.addEventListener("click", returnToEditMode);
-  exitAddingPhotosModeCross.addEventListener("click", exitAddingPhotosMode);
-
-  const divSendingPhotosInput = document.createElement("span");
-  const sendingPhotosInput = document.createElement("input");
-  sendingPhotosInput.setAttribute("type", "submit");
-  sendingPhotosInput.setAttribute("value", "Valider");
-  sendingPhotosInput.addEventListener("click", addingPhotosMode);
-  overlayAddingPhotosDiv.appendChild(divSendingPhotosInput);
-  divSendingPhotosInput.appendChild(sendingPhotosInput);
-}
-
+// Fonction pour récupérer et afficher les images de la banque de données
 async function getWorksEditMode() {
   // Récupération du tableau works depuis l'API
   const response = await fetch("http://localhost:5678/api/works");
@@ -291,6 +247,103 @@ async function getWorksEditMode() {
     // Ajoutez le nouvel élément figure à la div gallery
     galleryContainerEditMode.appendChild(figureElement);
   });
+}
+
+// Fonction pour passer au mode d'ajout des photos
+function addingPhotosMode() {
+  console.log("Le bouton d'ajout d'une photo a été cliqué");
+  const main = document.querySelector("main");
+  const overlayAddingPhotosDiv = document.createElement("div");
+  overlayAddingPhotosDiv.id = "addingPhotosForm";
+  const navigationButtonsAddingPhotosDiv = document.createElement("div");
+  navigationButtonsAddingPhotosDiv.id = "navigationButtonsAddingPhotosDiv";
+  const returnToEditModeArrow = document.createElement("i");
+  returnToEditModeArrow.className = "fa-solid fa-arrow-left";
+  const exitAddingPhotosModeCross = document.createElement("i");
+  exitAddingPhotosModeCross.className = "fa-solid fa-xmark";
+  const addingPhotosModeTitle = document.createElement("h3");
+  addingPhotosModeTitle.textContent = "Ajout photo";
+
+  const fillInPhotosForm = document.createElement("form");
+  fillInPhotosForm.setAttribute("action", "http://localhost:5678/api/works");
+  fillInPhotosForm.setAttribute("method", "post");
+  fillInPhotosForm.setAttribute("enctype", "multipart/form-data");
+  fillInPhotosForm.id = "fillInPhotosForm";
+  const previewPictureLabel = document.createElement("div");
+  previewPictureLabel.id = "previewPictureLabel";
+  const imageIcon = document.createElement("i");
+  imageIcon.className = "fa-regular fa-image";
+  const uploadPhotosInput = document.createElement("input");
+  uploadPhotosInput.setAttribute("type", "file");
+  uploadPhotosInput.setAttribute("name", "image");
+  uploadPhotosInput.setAttribute("value", "+ Ajouter photo");
+  uploadPhotosInput.id = "imageInput";
+  const titleLabel = document.createElement("label");
+  titleLabel.setAttribute("for", "title");
+  titleLabel.textContent = "Titre";
+  const titleLabelInput = document.createElement("input");
+  titleLabelInput.setAttribute("type", "text");
+  titleLabelInput.setAttribute("name", "title");
+  titleLabelInput.id = "title";
+  const categoryLabelInput = document.createElement("select");
+  categoryLabelInput.id = "categories";
+  const spanSendingPhotosInput = document.createElement("span");
+  const sendingPhotosInput = document.createElement("input");
+  sendingPhotosInput.setAttribute("type", "submit");
+  sendingPhotosInput.setAttribute("value", "Valider");
+  sendingPhotosInput.addEventListener("click", addingPhotosMode);
+
+  async function getCategoriesInput() {
+    const categoriesRaw = await fetch("http://localhost:5678/api/categories");
+    const categories = await categoriesRaw.json();
+
+    // Nous ajoutons pour chaque catégorie, un select dans l'input
+    categories.forEach((category) => {
+      const categorySelect = document.createElement("option");
+      categorySelect.setAttribute("value", category.id);
+      categorySelect.textContent = category.name;
+      categoryLabelInput.appendChild(categorySelect);
+    });
+    categoryLabelInput.selectedIndex = -1;
+  }
+  const categoryLabel = document.createElement("label");
+  categoryLabel.setAttribute("for", "category");
+  categoryLabel.textContent = "Catégorie";
+
+  // Fonction pour revenir au menu précédent
+  const returnToEditMode = function (event) {
+    main.removeChild(overlayAddingPhotosDiv);
+  };
+
+  // Fonction pour quitter le menu d'édition entièrement
+  const exitAddingPhotosMode = function (event) {
+    const overlayDiv = document.getElementById("edit__divOverlay");
+    const overlayEditDiv = document.getElementById("editForm");
+    main.removeChild(overlayAddingPhotosDiv);
+    main.removeChild(overlayDiv);
+    main.removeChild(overlayEditDiv);
+  };
+
+  main.appendChild(overlayAddingPhotosDiv);
+  overlayAddingPhotosDiv.appendChild(navigationButtonsAddingPhotosDiv);
+  navigationButtonsAddingPhotosDiv.appendChild(returnToEditModeArrow);
+  navigationButtonsAddingPhotosDiv.appendChild(exitAddingPhotosModeCross);
+  overlayAddingPhotosDiv.appendChild(addingPhotosModeTitle);
+  overlayAddingPhotosDiv.appendChild(fillInPhotosForm);
+
+  returnToEditModeArrow.addEventListener("click", returnToEditMode);
+  exitAddingPhotosModeCross.addEventListener("click", exitAddingPhotosMode);
+
+  fillInPhotosForm.appendChild(previewPictureLabel);
+  previewPictureLabel.appendChild(imageIcon);
+  previewPictureLabel.appendChild(uploadPhotosInput);
+  fillInPhotosForm.appendChild(titleLabel);
+  fillInPhotosForm.appendChild(titleLabelInput);
+  fillInPhotosForm.appendChild(categoryLabel);
+  fillInPhotosForm.appendChild(categoryLabelInput);
+  fillInPhotosForm.appendChild(spanSendingPhotosInput);
+  spanSendingPhotosInput.appendChild(sendingPhotosInput);
+  getCategoriesInput();
 }
 
 async function main() {

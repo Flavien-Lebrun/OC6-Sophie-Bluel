@@ -181,7 +181,7 @@ li:hover {
 
 .galleryEditor {
 	width: 75%;
-	margin: 6% 12% 10% 12%;
+	margin: 6% 12% 6% 12%;
 	display: grid;
 	grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
 	grid-column-gap: 10px;
@@ -307,11 +307,11 @@ footer nav ul {
 
 #editForm span, #addingPhotosForm span {
 	display: flex;
-	margin: 6% 12% 10% 12%;
+	margin: 0% 12% 0% 12%;
 	border-top: #e5e5e5 solid 2px;
 }
 
-#editForm input, #addingPhotosForm input {
+#editForm input, #addingPhotosForm input, #addingPhotosForm select {
 	height: 50px;
 	font-size: 1.2em;
 	border: none;
@@ -319,9 +319,16 @@ footer nav ul {
 	width: 300px;
 }
 
+#fillInPhotosForm input, #fillInPhotosForm select {
+	margin-bottom: 1em;
+	font-family: Work Sans;
+	padding-left: 15px;
+	width: auto;
+}
+
 .galleryEditor figure a {
 	position: relative;
-	bottom: 83%;
+	bottom: 78%;
 	right: 10%;
 	justify-content: end;
 	display: flex;
@@ -341,7 +348,24 @@ footer nav ul {
 	justify-content: space-between;
 }
 
-.addingPhotosDiv {
+#fillInPhotosForm {
+	flex-direction: column;
+    display: flex;
 	width: 75%;
 	margin: 6% 12% 10% 12%;
+}
+
+#fillInPhotosForm label {
+	margin-bottom: 1em;
+}
+
+#previewPictureLabel {
+	background-color: #E8F1F6;
+	padding: 5px;
+}
+
+#previewPictureLabel i {
+	font-size: 6em;
+	justify-content: center;
+	color: #CBD6DD;
 }
