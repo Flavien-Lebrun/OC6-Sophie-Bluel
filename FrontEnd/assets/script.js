@@ -89,7 +89,7 @@ function connectionStatus() {
   const userToken = localStorage.getItem("token");
   console.log("Le token présent dans le localStorage est :", userToken);
 
-  const loginButton = document.getElementById("connectionStatus");
+  const loginButton = document.getElementById("connectionStatusAnchor");
 
   // Gestion du bouton "Modifier" en sélectionnant la div vide déjà existante (définie en dehors de la condition pour éviter la répétition)
   const editDiv = document.querySelector(".portfolio__div__edit");
@@ -99,25 +99,8 @@ function connectionStatus() {
 
   // Si le token est présent, je peux commencer les changements dans l'HTML
   if (userToken) {
-    // J'ajoute une <div> mode édition dans le header
-    const editDivHeader = document.createElement("div");
-    editDivHeader.id = "header__editDiv";
-
-    // J'ajoute l'icône <i>
-    const editIconHeader = document.createElement("i");
-    editIconHeader.className = "fa-regular fa-pen-to-square";
-    editIconHeader.setAttribute("aria-hidden", "true");
-
-    // J'ajoute le texte "Mode édition"
-    const editTextHeader = document.createElement("p");
-    editTextHeader.textContent = "Mode édition";
-
-    // Ajoutez l'icône et le texte dans le div
-    editDivHeader.appendChild(editIconHeader);
-    editDivHeader.appendChild(editTextHeader);
-
-    // Ajoutez le div à la fin du header et augmenter la margin top du header
-    header.appendChild(editDivHeader);
+    // // Ajoutez la div à la fin du header et augmenter la margin top du header
+    // header.appendChild(editDivHeader);
     header.style.marginTop = "75px";
 
     // Je change l'élément <a> de login en élément <a> de logout
@@ -126,6 +109,7 @@ function connectionStatus() {
 
     // Gestion du bouton logout
     const logoutHandler = function (event) {
+      console.log("logout");
       event.preventDefault();
       localStorage.removeItem("token");
       loginButton.href = "login.html";
@@ -141,25 +125,28 @@ function connectionStatus() {
     // Masquer la grille des catégories
     const categoriesContainer = document.querySelector(".categories");
     categoriesContainer.style.display = "none";
-    console.log("J'ai masqué la barre de catégories");
 
-    // Création d'un élément <a> avec un <i> et un <b> à l'intérieur
-    const editorDiv = document.createElement("div");
-    editorDiv.addEventListener("click", editPopUp);
-    const penToSquareIcon = document.createElement("i");
-    penToSquareIcon.className = "fa-regular fa-pen-to-square";
-    const boldElement = document.createElement("b");
-    boldElement.textContent = "modifier";
-    boldElement.style.cursor = "default";
+    header.insertAdjacentHTML(
+      `beforeend`,
+      `
+        <div id="header__editDiv">
+          <i class="fa-regular fa-pen-to-square" aria-hidden="true"></i>
+          <p>Mode édition</p>
+        </div>`
+    );
 
-    addEventListener;
+    document.getElementById("portfolio__div").insertAdjacentHTML(
+      `beforeend`,
+      `
+      <div id="portfolio__div__edit">
+        <div id="editorDiv">
+          <i class="fa-regular fa-pen-to-square" aria-hidden="true"></i>
+          <p>modifier</p>
+        </div>
+      </div>`
+    );
 
-    // Mettre les éléments <i> et <b> dans le parent <a>
-    editorDiv.appendChild(penToSquareIcon);
-    editorDiv.appendChild(boldElement);
-
-    // Mettre l'élément <a> dans la div parent "portfolio__div__edit"
-    editDiv.appendChild(editorDiv);
+    document.getElementById("editorDiv").addEventListener("click", editPopUp);
   } else {
     console.log("Aucun token n'as été détecté dans le localStorage");
     loginButton.textContent = "login";
@@ -169,7 +156,7 @@ function connectionStatus() {
     categoriesContainer.style.display = "flex";
 
     // Supprimer la <div> "Mode édition" ainsi que reinitialiser la margin du header
-    header.removeChild(header__editDiv);
+    header.removeChild(document.getElementById("header__editDiv"));
     header.style.marginTop = "50px";
 
     // Supprimer le bouton modifier s'il était présent
@@ -181,40 +168,33 @@ function connectionStatus() {
 
 // Fonction pour afficher le Pop up d'édition des photos
 function editPopUp() {
+  console.log("overlay");
   const main = document.querySelector("main");
-  const overlayDiv = document.createElement("div");
-  overlayDiv.id = "edit__divOverlay";
-  const overlayEditDiv = document.createElement("div");
-  overlayEditDiv.id = "editForm";
-  const exitEditModeCross = document.createElement("i");
-  exitEditModeCross.className = "fa-solid fa-xmark";
-  const editModeTitle = document.createElement("h3");
-  editModeTitle.textContent = "Galerie photo";
-  const editGalleryContainer = document.createElement("div");
-  editGalleryContainer.className = "galleryEditor gallery";
+  main.insertAdjacentHTML(
+    `beforeend`,
+    `
+    <div id="edit__divOverlay"></div>
+    <div id="editForm">
+      <i id="exitEditModeCross" class="fa-solid fa-xmark" aria-hidden="true"></i>
+      <h3>Galerie photo</h3>
+      <div class="galleryEditor gallery"></div>
+      <span>
+        <input id="submitPhotoInput" type="submit" value="Ajouter une photo">
+      </span>
+    </div>`
+  );
 
   const exitEditMode = function (event) {
-    main.removeChild(overlayDiv);
-    main.removeChild(overlayEditDiv);
+    main.removeChild(document.getElementById(`edit__divOverlay`));
+    main.removeChild(document.getElementById(`editForm`));
   };
 
-  main.appendChild(overlayDiv);
-  main.appendChild(overlayEditDiv);
-  overlayEditDiv.appendChild(exitEditModeCross);
-  overlayEditDiv.appendChild(editModeTitle);
-  overlayEditDiv.appendChild(editGalleryContainer);
-
+  const exitEditModeCross = document.getElementById(`exitEditModeCross`);
   exitEditModeCross.addEventListener("click", exitEditMode);
+  const submitPhotoInput = document.getElementById("submitPhotoInput");
+  submitPhotoInput.addEventListener("click", addingPhotosMode);
 
   getWorksEditMode();
-
-  const divAddingPhotosInput = document.createElement("span");
-  const addingPhotosInput = document.createElement("input");
-  addingPhotosInput.setAttribute("type", "submit");
-  addingPhotosInput.setAttribute("value", "Ajouter une photo");
-  addingPhotosInput.addEventListener("click", addingPhotosMode);
-  overlayEditDiv.appendChild(divAddingPhotosInput);
-  divAddingPhotosInput.appendChild(addingPhotosInput);
 }
 
 // Fonction pour récupérer et afficher les images de la banque de données
@@ -251,49 +231,77 @@ async function getWorksEditMode() {
 
 // Fonction pour passer au mode d'ajout des photos
 function addingPhotosMode() {
-  console.log("Le bouton d'ajout d'une photo a été cliqué");
   const main = document.querySelector("main");
-  const overlayAddingPhotosDiv = document.createElement("div");
-  overlayAddingPhotosDiv.id = "addingPhotosForm";
-  const navigationButtonsAddingPhotosDiv = document.createElement("div");
-  navigationButtonsAddingPhotosDiv.id = "navigationButtonsAddingPhotosDiv";
-  const returnToEditModeArrow = document.createElement("i");
-  returnToEditModeArrow.className = "fa-solid fa-arrow-left";
-  const exitAddingPhotosModeCross = document.createElement("i");
-  exitAddingPhotosModeCross.className = "fa-solid fa-xmark";
-  const addingPhotosModeTitle = document.createElement("h3");
-  addingPhotosModeTitle.textContent = "Ajout photo";
 
-  const fillInPhotosForm = document.createElement("form");
-  fillInPhotosForm.setAttribute("action", "http://localhost:5678/api/works");
-  fillInPhotosForm.setAttribute("method", "post");
-  fillInPhotosForm.setAttribute("enctype", "multipart/form-data");
-  fillInPhotosForm.id = "fillInPhotosForm";
-  const previewPictureLabel = document.createElement("div");
-  previewPictureLabel.id = "previewPictureLabel";
-  const imageIcon = document.createElement("i");
-  imageIcon.className = "fa-regular fa-image";
-  const uploadPhotosInput = document.createElement("input");
-  uploadPhotosInput.setAttribute("type", "file");
-  uploadPhotosInput.setAttribute("name", "image");
-  uploadPhotosInput.setAttribute("value", "+ Ajouter photo");
-  uploadPhotosInput.id = "imageInput";
-  const titleLabel = document.createElement("label");
-  titleLabel.setAttribute("for", "title");
-  titleLabel.textContent = "Titre";
-  const titleLabelInput = document.createElement("input");
-  titleLabelInput.setAttribute("type", "text");
-  titleLabelInput.setAttribute("name", "title");
-  titleLabelInput.id = "title";
-  const categoryLabelInput = document.createElement("select");
-  categoryLabelInput.id = "categories";
-  const spanSendingPhotosInput = document.createElement("span");
-  const sendingPhotosInput = document.createElement("input");
-  sendingPhotosInput.setAttribute("type", "submit");
-  sendingPhotosInput.setAttribute("value", "Valider");
-  sendingPhotosInput.addEventListener("click", addingPhotosMode);
+  main.insertAdjacentHTML(
+    `beforeend`,
+    `
+    <div id="addingPhotosForm">
+      <div id="navigationButtonsAddingPhotosDiv">
+        <i id="returnToEditModeArrow" class="fa-solid fa-arrow-left" aria-hidden="true"></i>
+        <i id="exitAddingPhotosModeCross" class="fa-solid fa-xmark" aria-hidden="true"></i>
+      </div>
+      <h3>Ajout photo</h3>
+      <form id="fillInPhotosForm" action="http://localhost:5678/api/works" method="post" enctype="multipart/form-data">
+        <div id="previewPictureLabel">
+          <i class="fa-regular fa-image" aria-hidden="true"></i>
+          <input type="file" name="image" id="imageInput" accept="image/*" multiple="false">
+        </div>
+        <label for="title">Titre</label><input type="text" name="title" id="title">
+        <label for="category">Catégorie</label>
+        <select id="categories"></select>
+        <span>
+          <input type="submit" value="Valider">
+        </span>
+      </form>
+    </div>`
+  );
+
+  function addingWorks() {
+    document.getElementById("addingPhotosForm");
+    document.addEventListener("submit", async function (event) {
+      console.log("Un travail a été envoyé");
+      event.preventDefault();
+      const token = localStorage.getItem("token");
+      // Récupération du tableau works depuis l'API
+      const worksResponse = await fetch("http://localhost:5678/api/works");
+      const works = await worksResponse.json();
+      const id = works.length + 1;
+      const title = document.getElementById("title").value;
+      const imageInput = document.getElementById("imageInput");
+      const selectedFiles = imageInput.files;
+      const firstFile = selectedFiles[0];
+      const imageUrl = URL.createObjectURL(firstFile);
+      const categoryId = document.getElementById("categories").value;
+      const userId = parseInt(localStorage.getItem("userId"));
+      console.log(id, title, imageUrl, categoryId, userId);
+      console.log("Token:", token);
+      const response = fetch("http://localhost:5678/api/works", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer ${token}",
+        },
+        body: JSON.stringify({
+          id: id,
+          title: title,
+          imageUrl: imageUrl,
+          categoryId: categoryId,
+          userId: userId,
+        }),
+      });
+      URL.revokeObjectURL(imageUrl);
+
+      if (response.ok) {
+        console.log("Le travail a bien été envoyé");
+      } else {
+        console.log("marche pas ta merde");
+      }
+    });
+  }
 
   async function getCategoriesInput() {
+    const categoryLabelInput = document.getElementById("categories");
     const categoriesRaw = await fetch("http://localhost:5678/api/categories");
     const categories = await categoriesRaw.json();
 
@@ -306,44 +314,30 @@ function addingPhotosMode() {
     });
     categoryLabelInput.selectedIndex = -1;
   }
-  const categoryLabel = document.createElement("label");
-  categoryLabel.setAttribute("for", "category");
-  categoryLabel.textContent = "Catégorie";
 
   // Fonction pour revenir au menu précédent
   const returnToEditMode = function (event) {
-    main.removeChild(overlayAddingPhotosDiv);
+    main.removeChild(document.getElementById(`addingPhotosForm`));
   };
 
   // Fonction pour quitter le menu d'édition entièrement
   const exitAddingPhotosMode = function (event) {
-    const overlayDiv = document.getElementById("edit__divOverlay");
-    const overlayEditDiv = document.getElementById("editForm");
-    main.removeChild(overlayAddingPhotosDiv);
-    main.removeChild(overlayDiv);
-    main.removeChild(overlayEditDiv);
+    main.removeChild(document.getElementById(`edit__divOverlay`));
+    main.removeChild(document.getElementById(`editForm`));
+    main.removeChild(document.getElementById(`addingPhotosForm`));
   };
 
-  main.appendChild(overlayAddingPhotosDiv);
-  overlayAddingPhotosDiv.appendChild(navigationButtonsAddingPhotosDiv);
-  navigationButtonsAddingPhotosDiv.appendChild(returnToEditModeArrow);
-  navigationButtonsAddingPhotosDiv.appendChild(exitAddingPhotosModeCross);
-  overlayAddingPhotosDiv.appendChild(addingPhotosModeTitle);
-  overlayAddingPhotosDiv.appendChild(fillInPhotosForm);
-
+  const returnToEditModeArrow = document.getElementById(
+    "returnToEditModeArrow"
+  );
+  const exitAddingPhotosModeCross = document.getElementById(
+    "exitAddingPhotosModeCross"
+  );
   returnToEditModeArrow.addEventListener("click", returnToEditMode);
   exitAddingPhotosModeCross.addEventListener("click", exitAddingPhotosMode);
 
-  fillInPhotosForm.appendChild(previewPictureLabel);
-  previewPictureLabel.appendChild(imageIcon);
-  previewPictureLabel.appendChild(uploadPhotosInput);
-  fillInPhotosForm.appendChild(titleLabel);
-  fillInPhotosForm.appendChild(titleLabelInput);
-  fillInPhotosForm.appendChild(categoryLabel);
-  fillInPhotosForm.appendChild(categoryLabelInput);
-  fillInPhotosForm.appendChild(spanSendingPhotosInput);
-  spanSendingPhotosInput.appendChild(sendingPhotosInput);
   getCategoriesInput();
+  addingWorks();
 }
 
 async function main() {

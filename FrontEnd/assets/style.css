@@ -259,15 +259,23 @@ footer nav ul {
 	margin-right: 15px;
 }
 
-.portfolio__div {
+#portfolio__div {
 	position: relative;
 }
 
-.portfolio__div__edit {
+#portfolio__div__edit {
 	font-size: 1.1em;
 	position: absolute;
 	top : 26%;
 	margin-left: calc(50% + 130px);
+}
+
+#editorDiv {
+	display: flex;
+}
+
+#editorDiv p {
+	cursor: default;
 }
 
 #edit__divOverlay {
