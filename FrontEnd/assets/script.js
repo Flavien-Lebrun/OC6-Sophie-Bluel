@@ -1,7 +1,8 @@
-async function getCategories() {
-  // Nous récupérons les catégories depuis l'API
-  const categoriesRaw = await fetch("http://localhost:5678/api/categories");
-  const categories = await categoriesRaw.json();
+// Importez les fonctions fetch depuis apiFunctions.js
+import { getWorks, getCategories, sendWork, deleteWorkById } from "./apiFunctions.js";
+
+async function loadCategories(categoriesList) {
+  const categories = await getCategories(categoriesList);
 
   // Nous ajoutons pour chaque catégorie, un button dans l'HTML
   const categoriesContainer = document.querySelector(".categories");
@@ -13,10 +14,8 @@ async function getCategories() {
   });
 }
 
-async function getWorks() {
-  // Récupération du tableau works depuis l'API
-  const response = await fetch("http://localhost:5678/api/works");
-  const works = await response.json();
+async function loadWorks(worksList) {
+  const works = await getWorks(worksList);
 
   // Ajouter dynamiquement les éléments du tableau dans l'HTML pour chaque work détecté via une boucle
   const galleryContainer = document.querySelector(".gallery");
@@ -27,8 +26,10 @@ async function getWorks() {
 
     // Créer un élément img avec une source, un alt ainsi qu'une description visible
     const imgElement = document.createElement("img");
+    imgElement.id = work.id;
     imgElement.src = work.imageUrl;
     imgElement.alt = work.title;
+    
     const figcaptionElement = document.createElement("figcaption");
     figcaptionElement.textContent = work.title;
 
@@ -168,7 +169,6 @@ function connectionStatus() {
 
 // Fonction pour afficher le Pop up d'édition des photos
 function editPopUp() {
-  console.log("overlay");
   const main = document.querySelector("main");
   main.insertAdjacentHTML(
     `beforeend`,
@@ -198,10 +198,9 @@ function editPopUp() {
 }
 
 // Fonction pour récupérer et afficher les images de la banque de données
-async function getWorksEditMode() {
+async function getWorksEditMode(worksList) {
   // Récupération du tableau works depuis l'API
-  const response = await fetch("http://localhost:5678/api/works");
-  const works = await response.json();
+  const works = await getWorks(worksList);
 
   // Ajouter dynamiquement les éléments du tableau dans l'HTML pour chaque work détecté via une boucle
   const galleryContainerEditMode = document.querySelector(".galleryEditor");
@@ -218,6 +217,30 @@ async function getWorksEditMode() {
 
     const deleteImgTrashCan = document.createElement("i");
     deleteImgTrashCan.className = "fa-solid fa-trash-can";
+    deleteImgTrashCan.addEventListener("click", async (event) => {
+      try {
+        event.preventDefault();
+        const id = work.id;
+        console.log("l'id avant function est:", id);
+        const token = localStorage.getItem("token");
+
+        const response = await deleteWorkById(id, token);
+
+        if (response.ok) {
+          console.log("Le travail a bien été supprimé");
+          console.log("l'id après function est:", id);
+          const galleryContainer = document.querySelector(".gallery");
+          galleryContainerEditMode.removeChild(document.getElementById(`#${id}`));
+          galleryContainer.removeChild(document.getElementById(`#${id}`));
+        } else {
+          const data = await response.json();
+          console.error(data.message);
+        }
+      } catch (error) {
+        console.error("Une erreur s'est produite lors de l'envoi du travail :", error);
+        throw error;
+      }
+    });
 
     // Ajoutez les éléments dans leur figure correspondantes
     figureElement.appendChild(imgElement);
@@ -245,7 +268,7 @@ function addingPhotosMode() {
       <form id="fillInPhotosForm" action="http://localhost:5678/api/works" method="post" enctype="multipart/form-data">
         <div id="previewPictureLabel">
           <i class="fa-regular fa-image" aria-hidden="true"></i>
-          <input type="file" name="image" id="imageInput" accept="image/*" multiple="false">
+          <input type="file" name="image" id="imageInput" multiple="false" accept=".png, .jpeg, .jpg">
         </div>
         <label for="title">Titre</label><input type="text" name="title" id="title">
         <label for="category">Catégorie</label>
@@ -256,54 +279,42 @@ function addingPhotosMode() {
       </form>
     </div>`
   );
-
-  function addingWorks() {
-    document.getElementById("addingPhotosForm");
-    document.addEventListener("submit", async function (event) {
-      console.log("Un travail a été envoyé");
+  
+  document.getElementById("fillInPhotosForm").addEventListener("submit", async (event) => {
+    console.log("test");
+    try {
       event.preventDefault();
+      const formData = new FormData();
       const token = localStorage.getItem("token");
-      // Récupération du tableau works depuis l'API
-      const worksResponse = await fetch("http://localhost:5678/api/works");
-      const works = await worksResponse.json();
-      const id = works.length + 1;
       const title = document.getElementById("title").value;
-      const imageInput = document.getElementById("imageInput");
-      const selectedFiles = imageInput.files;
-      const firstFile = selectedFiles[0];
-      const imageUrl = URL.createObjectURL(firstFile);
       const categoryId = document.getElementById("categories").value;
-      const userId = parseInt(localStorage.getItem("userId"));
-      console.log(id, title, imageUrl, categoryId, userId);
-      console.log("Token:", token);
-      const response = fetch("http://localhost:5678/api/works", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: "Bearer ${token}",
-        },
-        body: JSON.stringify({
-          id: id,
-          title: title,
-          imageUrl: imageUrl,
-          categoryId: categoryId,
-          userId: userId,
-        }),
-      });
-      URL.revokeObjectURL(imageUrl);
+      const imageInput = document.getElementById("imageInput").files;
+      if (imageInput.length > 0) {
+        formData.append("image", imageInput[0]);
+        formData.append("title", title);
+        formData.append("category", categoryId);
+        console.log(formData);
 
-      if (response.ok) {
-        console.log("Le travail a bien été envoyé");
+        const response = await sendWork(formData, token);
+
+        if (response.ok) {
+          console.log("Le travail a bien été envoyé");
+        } else {
+          const data = await response.json();
+          console.error(data.message);
+        }
       } else {
-        console.log("marche pas ta merde");
+        console.error("Veuillez sélectionner une image.");
       }
-    });
-  }
+    } catch (error) {
+      console.error("Une erreur s'est produite lors de l'envoi du travail :", error);
+      throw error;
+    }
+  }); 
 
-  async function getCategoriesInput() {
+  async function getCategoriesInput(categoriesList) {
     const categoryLabelInput = document.getElementById("categories");
-    const categoriesRaw = await fetch("http://localhost:5678/api/categories");
-    const categories = await categoriesRaw.json();
+    const categories = await getCategories(categoriesList);
 
     // Nous ajoutons pour chaque catégorie, un select dans l'input
     categories.forEach((category) => {
@@ -337,14 +348,13 @@ function addingPhotosMode() {
   exitAddingPhotosModeCross.addEventListener("click", exitAddingPhotosMode);
 
   getCategoriesInput();
-  addingWorks();
 }
 
 async function main() {
-  await getCategories();
-  await getWorks();
+  await loadCategories();
+  await loadWorks();
   filterWorks();
-  await connectionStatus();
+  connectionStatus();
 }
 
 main();

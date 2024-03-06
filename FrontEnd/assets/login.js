@@ -19,7 +19,6 @@ function login() {
     if (response.ok) {
       // Stockez le token dans localStorage (ou les cookies, selon votre choix)
       localStorage.setItem("token", data.token);
-      localStorage.setItem("userId", data.userId);
       console.log(
         "Les informations de connexion sont correctes, le token a été stocké dans le stockage local"
       );
