@@ -399,7 +399,7 @@ footer nav ul {
 	border-radius: 10px;
 	top: 6%;
 	left: 30%;
-	height: 650px;
+	height: 750px;
 	border-radius: 10px;
 }
 
@@ -414,13 +414,15 @@ footer nav ul {
 #editForm h3,
 #addingPhotosForm h3 {
 	text-align: center;
-	font-size: 1.6em;
+	font-size: 2em;
 	margin-top: 20px;
 }
 
 #addingPhotosFormError {
+	display: flex;
 	font-size: 1em;
 	color: red;
+	justify-content: center;
 }
 
 #editForm span {
@@ -429,9 +431,10 @@ footer nav ul {
 	border-top: #e5e5e5 solid 2px;
 }
 
+
+
 #addingPhotosForm span {
 	display: flex;
-	padding: 0% 12% 0% 12%;
 	border-top: #e5e5e5 solid 2px;
 }
 
@@ -447,28 +450,51 @@ footer nav ul {
 
 #fillInPhotosForm input,
 #fillInPhotosForm select {
-	margin-bottom: 1em;
 	font-family: Work Sans;
 	padding-left: 15px;
 	width: auto;
 }
 
+#imagePreview {
+	flex-wrap: wrap;
+	display: flex;
+	position: absolute;
+	height: 218px;
+	left: 39%;
+}
+
+#fillInPhotosForm #categories {
+	margin-bottom: 50px;
+}
+
 #fillInPhotosForm #fillInPhotosFormSubmitButton {
 	width: 300px;
+	font-family: 'Syne';
+	padding-left: 0px;
+	background-color: #A7A7A7;
 }
 
 #fillInPhotosForm #falseImageInput {
+	display: flex;
 	font-weight: 700;
 	color: #1D6154;
 	background-color: #CBD6DD;
-	margin: 2em auto;
-	width: 180px;
+	margin: 0.6em auto;
+	width: 220px;
 	text-align: center;
 	border-radius: 60px;
+	height: 50px;
+	justify-content: center;
+	align-items: center;
+	font-size: 1.2em;
 }
 
 #imageInput {
 	display: none;
+}
+
+#imageInputH3 {
+	text-align: center;
 }
 
 .galleryEditor figure a {
@@ -501,12 +527,13 @@ footer nav ul {
 }
 
 #fillInPhotosForm label {
-	margin-bottom: 1em;
+	margin: 2.2em 0em 1em 0em;
 }
 
 #previewPictureLabel {
 	background-color: #E8F1F6;
-	padding: 5px;
+	padding: 25px;
+	border-radius: 5px;
 }
 
 #previewPictureLabel i {

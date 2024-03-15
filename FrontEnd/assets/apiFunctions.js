@@ -12,9 +12,7 @@ export async function getWorks(worksList) {
 
 export async function sendWork(formData, token) {
   try {
-    console.log("Token:", token);
     formData.values().forEach(value => {
-      console.log(value);
     });
     const response = await fetch("http://localhost:5678/api/works", {
       method: "POST",
@@ -26,14 +24,13 @@ export async function sendWork(formData, token) {
     return response;
 
   } catch (error) {
-    console.error("Une erreur s'est produite lors de l'envoi du travail :", error);
+    console.error("Une erreur s'est produite lors de l'envoi du travail :", response.status);
     throw error;
   }
 };
 
 export async function deleteWorkById(id, token) {
   try {
-    console.log(id);
     const response = await fetch(`http://localhost:5678/api/works/${id}`, {
       method: "DELETE",
     headers: {

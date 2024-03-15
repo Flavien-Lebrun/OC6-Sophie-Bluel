@@ -82,14 +82,11 @@ async function loadLastWork() {
       try {
         event.preventDefault();
         const id = work.id;
-        console.log("l'id avant function est:", id);
         const token = localStorage.getItem("token");
 
         const response = await deleteWorkById(id, token);
 
         if (response.ok) {
-          console.log("Le travail a bien été supprimé");
-          console.log("l'id après function est:", id);
           const workToDelete = document.querySelectorAll(`.id-${id}`);
           workToDelete.forEach(figure => {
             figure.remove();
@@ -114,11 +111,9 @@ async function loadLastWork() {
   });
 }
 
-
 function filterWorks() {
   // Récupérer l'information des boutons
   const categoryButtons = document.querySelectorAll(".categories button");
-  console.log("J'ai récupéré", categoryButtons.length, "catégories");
 
   // Différencier chaque bouton
   categoryButtons.forEach((button) => {
@@ -132,7 +127,6 @@ function categoryClicked(event) {
   // Je récupère la value correspondante à la catégorie de chaque button
   const categoryValue = event.target.getAttribute("category");
 
-  console.log("Vous avez sélectionné la catégorie :", categoryValue);
   // J'enlève l'attribut selected à tous les buttons
   categoryButtons.forEach((button) => {
     button.removeAttribute("selected");
@@ -144,8 +138,6 @@ function categoryClicked(event) {
   // Pour chacune des figures, je récupère la valeur de son attribut category et l'énonce
   allFigures.forEach((figure) => {
     const figureCategory = figure.getAttribute("category");
-    console.log("La catégorie de cette figure est :", figureCategory);
-    console.log(categoryValue);
 
     // Si le bouton "Tous" est sélectionné,
     if (categoryValue == 0 || figureCategory === categoryValue) {
@@ -161,7 +153,6 @@ let preventDefaultEnabled = true;
 function connectionStatus() {
   // Je récupère le token d'authentification via le local storage en créant une constante
   const userToken = localStorage.getItem("token");
-  console.log("Le token présent dans le localStorage est :", userToken);
 
   const loginButton = document.getElementById("connectionStatusAnchor");
 
@@ -183,7 +174,6 @@ function connectionStatus() {
 
     // Gestion du bouton logout
     const logoutHandler = function (event) {
-      console.log("logout");
       event.preventDefault();
       localStorage.removeItem("token");
       loginButton.href = "login.html";
@@ -222,7 +212,6 @@ function connectionStatus() {
 
     document.getElementById("editorDiv").addEventListener("click", editPopUp);
   } else {
-    console.log("Aucun token n'as été détecté dans le localStorage");
     loginButton.textContent = "login";
 
     // Afficher à nouveau la grille des catégories
@@ -296,14 +285,11 @@ async function getWorksEditMode(worksList) {
       try {
         event.preventDefault();
         const id = work.id;
-        console.log("l'id avant function est:", id);
         const token = localStorage.getItem("token");
 
         const response = await deleteWorkById(id, token);
 
         if (response.ok) {
-          console.log("Le travail a bien été supprimé");
-          console.log("l'id après function est:", id);
           const workToDelete = document.querySelectorAll(`.id-${id}`);
           workToDelete.forEach(figure => {
             figure.remove();
@@ -342,27 +328,71 @@ function addingPhotosMode() {
       </div>
       <h3>Ajout photo</h3>
       <form id="fillInPhotosForm" action="http://localhost:5678/api/works" method="post" enctype="multipart/form-data">
+        <img id="imagePreview">
         <div id="previewPictureLabel">
           <i class="fa-regular fa-image" aria-hidden="true"></i>
-          <label id=falseImageInput onclick="getImageInput()">+ Ajouter photo</label>
+          <label id="falseImageInput">+ Ajouter photo</label>
           <input type="file" name="image" id="imageInput" multiple="false" accept=".png, .jpeg, .jpg">
-          <h3 class="">jpg, png : 4mo max</h3>
+          <p id="imageInputH3">jpg, png : 4mo max</pp>
         </div>
         <label for="title">Titre</label><input type="text" name="title" id="title">
         <label for="category">Catégorie</label>
         <select id="categories"></select>
         <span>
-          <input id="fillInPhotosFormSubmitButton" type="submit" value="Valider">
+          <input id="fillInPhotosFormSubmitButton" type="submit" value="Valider" disabled>
         </span>
       </form>
     </div>`
   );
-  
-  function getImageInput() {
+
+  document.getElementById("falseImageInput").addEventListener("click", function() {
     document.getElementById("imageInput").click();
+  });
+  
+  const imageInput = document.getElementById("imageInput");
+  imageInput.addEventListener('change', function(event) {
+    const file = event.target.files[0];
+    
+    
+    if (file) {
+      const imagePreview = document.getElementById('imagePreview');
+      const imageUrl = URL.createObjectURL(file);
+      imagePreview.src = imageUrl;
+
+      imagePreview.onload = function() {
+        URL.revokeObjectURL(imageUrl);
+      };
+
+      const hideLabel = document.getElementById("falseImageInput");
+      hideLabel.style.width = "150px";
+    } else {
+      return
+    }
+  });
+
+  const titleInput = document.getElementById("title");
+  const categorySelect = document.getElementById("categories");
+  const submitButton = document.getElementById("fillInPhotosFormSubmitButton");
+
+  imageInput.addEventListener("input", toggleSubmitButton);
+  titleInput.addEventListener("input", toggleSubmitButton);
+  categorySelect.addEventListener("change", toggleSubmitButton);
+
+  function toggleSubmitButton() {
+      // Vérifier si tous les champs sont remplis pour avoir une valeur de isFilled true ou false
+      const isFilled = imageInput.value.trim() !== "" && titleInput.value.trim() !== "" && categorySelect.value !== "";
+
+      // Activer ou désactiver le bouton de soumission en fonction de l'état des champs
+      if (isFilled) {
+          submitButton.removeAttribute("disabled");
+          submitButton.style.backgroundColor = "#1D6154"; // Changez la couleur de fond selon vos besoins
+      } else {
+          submitButton.setAttribute("disabled", true);
+          submitButton.style.backgroundColor = "#A7A7A7"; // Réinitialiser la couleur de fond
+      }
   }
+
   document.getElementById("fillInPhotosForm").addEventListener("submit", async (event) => {
-    console.log("test");
     try {
       event.preventDefault();
       const formData = new FormData();
@@ -378,27 +408,16 @@ function addingPhotosMode() {
         const response = await sendWork(formData, token);
 
         if (response.ok) {
-          console.log("Le travail a bien été envoyé");
           loadLastWork();
-          const addingPhotosForm = document.getElementById(`addingPhotosForm`);
-          addingPhotosForm.insertAdjacentHTML(
-            `beforeend`,
-              `
-              <h3 id="addingPhotosFormError">Le travail a bien été envoyé</h3>
-              `
-          );
-          setTimeout(() => {
-            const errorMessageElement = document.getElementById("addingPhotosFormError");
-            errorMessageElement.remove();
-          }, 5000);
+          resetSendWorkForm();
         } else {
           const data = await response.json();
-          const addingPhotosForm = document.getElementById(`addingPhotosForm`);
+          const fillInPhotosForm = document.getElementById(`fillInPhotosForm`);
           console.error(data.message);
-          addingPhotosForm.insertAdjacentHTML(
+          fillInPhotosForm.insertAdjacentHTML(
             `beforeend`,
               `
-              <h3 id="addingPhotosFormError">Une erreur s'est produite lors de l'envoi du travail. (${data.message})</h3>
+              <p id="addingPhotosFormError">Une erreur s'est produite lors de l'envoi du travail. (Erreur : ${response.status})</p>
               `
           );
           setTimeout(() => {
@@ -465,6 +484,18 @@ function addingPhotosMode() {
   document.getElementById(`edit__divOverlay`).addEventListener(`click`, returnToEditMode);
 
   getCategoriesInput();
+
+  async function resetSendWorkForm() {
+
+    const hideLabel = document.getElementById("falseImageInput");
+    const categoryLabelInput = document.getElementById("categories");
+    hideLabel.style.width = "220px";
+    document.getElementById("imageInput").value = "";
+    (document.getElementById("imagePreview")).src="";
+    categoryLabelInput.selectedIndex = -1;
+    document.getElementById("title").value = "";
+    toggleSubmitButton();
+  }
 }
 
 async function main() {
