@@ -1,5 +1,5 @@
 // Importez les fonctions fetch depuis apiFunctions.js
-import { getWorks, getCategories, sendWork, deleteWorkById } from "./apiFunctions.js";
+import { getWorks, getCategories, sendWork, deleteWorkById, getLastWork } from "./apiFunctions.js";
 
 async function loadCategories(categoriesList) {
   const categories = await getCategories(categoriesList);
@@ -23,10 +23,10 @@ async function loadWorks(worksList) {
     // Créer un élément figure pour chaque work existant et y ajouter un attribut selon sa catégorie
     const figureElement = document.createElement("figure");
     figureElement.setAttribute("category", work.categoryId);
+    figureElement.classList = `id-${work.id}`;
 
     // Créer un élément img avec une source, un alt ainsi qu'une description visible
     const imgElement = document.createElement("img");
-    imgElement.id = work.id;
     imgElement.src = work.imageUrl;
     imgElement.alt = work.title;
     
@@ -41,6 +41,79 @@ async function loadWorks(worksList) {
     galleryContainer.appendChild(figureElement);
   });
 }
+
+async function loadLastWork() {
+  const works = await getLastWork();
+  const galleryContainer = document.querySelector(".gallery");
+
+  const lastWork = works[works.length - 1]; // Récupérer le dernier élément de la liste
+
+  const figureElement = document.createElement("figure");
+  figureElement.setAttribute("category", lastWork.categoryId);
+  figureElement.classList = `id-${lastWork.id}`;
+
+  const imgElement = document.createElement("img");
+  imgElement.src = lastWork.imageUrl;
+  imgElement.alt = lastWork.title;
+
+  const figcaptionElement = document.createElement("figcaption");
+  figcaptionElement.textContent = lastWork.title;
+
+  figureElement.appendChild(imgElement);
+  figureElement.appendChild(figcaptionElement);
+
+  galleryContainer.appendChild(figureElement);
+
+  const galleryContainerEditMode = document.querySelector(".galleryEditor");
+  works.forEach((work) => {
+    // Créer un élément figure pour chaque work existant et y ajouter un attribut selon sa catégorie
+    const figureElement = document.createElement("figure");
+    figureElement.classList = `id-${work.id}`;
+
+    // Créer un élément img avec une source, un alt ainsi qu'une description visible
+    const imgElement = document.createElement("img");
+    imgElement.src = work.imageUrl;
+
+    const anchorDeleteImgTrashCan = document.createElement("a");
+
+    const deleteImgTrashCan = document.createElement("i");
+    deleteImgTrashCan.className = "fa-solid fa-trash-can";
+    deleteImgTrashCan.addEventListener("click", async (event) => {
+      try {
+        event.preventDefault();
+        const id = work.id;
+        console.log("l'id avant function est:", id);
+        const token = localStorage.getItem("token");
+
+        const response = await deleteWorkById(id, token);
+
+        if (response.ok) {
+          console.log("Le travail a bien été supprimé");
+          console.log("l'id après function est:", id);
+          const workToDelete = document.querySelectorAll(`.id-${id}`);
+          workToDelete.forEach(figure => {
+            figure.remove();
+          });
+        } else {
+          const data = await response.json();
+          console.error(data.message);
+        }
+      } catch (error) {
+        console.error("Une erreur s'est produite lors de l'envoi du travail :", error);
+        throw error;
+      }
+    });
+
+    // Ajoutez les éléments dans leur figure correspondantes
+    figureElement.appendChild(imgElement);
+    figureElement.appendChild(anchorDeleteImgTrashCan);
+    anchorDeleteImgTrashCan.appendChild(deleteImgTrashCan);
+
+    // Ajoutez le nouvel élément figure à la div gallery
+    galleryContainerEditMode.appendChild(figureElement);
+  });
+}
+
 
 function filterWorks() {
   // Récupérer l'information des boutons
@@ -184,11 +257,13 @@ function editPopUp() {
     </div>`
   );
 
+ 
   const exitEditMode = function (event) {
     main.removeChild(document.getElementById(`edit__divOverlay`));
     main.removeChild(document.getElementById(`editForm`));
   };
 
+  document.getElementById(`edit__divOverlay`).addEventListener(`click`, exitEditMode);
   const exitEditModeCross = document.getElementById(`exitEditModeCross`);
   exitEditModeCross.addEventListener("click", exitEditMode);
   const submitPhotoInput = document.getElementById("submitPhotoInput");
@@ -207,7 +282,7 @@ async function getWorksEditMode(worksList) {
   works.forEach((work) => {
     // Créer un élément figure pour chaque work existant et y ajouter un attribut selon sa catégorie
     const figureElement = document.createElement("figure");
-    figureElement.setAttribute("id", work.id);
+    figureElement.classList = `id-${work.id}`;
 
     // Créer un élément img avec une source, un alt ainsi qu'une description visible
     const imgElement = document.createElement("img");
@@ -229,9 +304,10 @@ async function getWorksEditMode(worksList) {
         if (response.ok) {
           console.log("Le travail a bien été supprimé");
           console.log("l'id après function est:", id);
-          const galleryContainer = document.querySelector(".gallery");
-          galleryContainerEditMode.removeChild(document.getElementById(`#${id}`));
-          galleryContainer.removeChild(document.getElementById(`#${id}`));
+          const workToDelete = document.querySelectorAll(`.id-${id}`);
+          workToDelete.forEach(figure => {
+            figure.remove();
+          });
         } else {
           const data = await response.json();
           console.error(data.message);
@@ -268,18 +344,23 @@ function addingPhotosMode() {
       <form id="fillInPhotosForm" action="http://localhost:5678/api/works" method="post" enctype="multipart/form-data">
         <div id="previewPictureLabel">
           <i class="fa-regular fa-image" aria-hidden="true"></i>
+          <label id=falseImageInput onclick="getImageInput()">+ Ajouter photo</label>
           <input type="file" name="image" id="imageInput" multiple="false" accept=".png, .jpeg, .jpg">
+          <h3 class="">jpg, png : 4mo max</h3>
         </div>
         <label for="title">Titre</label><input type="text" name="title" id="title">
         <label for="category">Catégorie</label>
         <select id="categories"></select>
         <span>
-          <input type="submit" value="Valider">
+          <input id="fillInPhotosFormSubmitButton" type="submit" value="Valider">
         </span>
       </form>
     </div>`
   );
   
+  function getImageInput() {
+    document.getElementById("imageInput").click();
+  }
   document.getElementById("fillInPhotosForm").addEventListener("submit", async (event) => {
     console.log("test");
     try {
@@ -293,22 +374,57 @@ function addingPhotosMode() {
         formData.append("image", imageInput[0]);
         formData.append("title", title);
         formData.append("category", categoryId);
-        console.log(formData);
 
         const response = await sendWork(formData, token);
 
         if (response.ok) {
           console.log("Le travail a bien été envoyé");
+          loadLastWork();
+          const addingPhotosForm = document.getElementById(`addingPhotosForm`);
+          addingPhotosForm.insertAdjacentHTML(
+            `beforeend`,
+              `
+              <h3 id="addingPhotosFormError">Le travail a bien été envoyé</h3>
+              `
+          );
+          setTimeout(() => {
+            const errorMessageElement = document.getElementById("addingPhotosFormError");
+            errorMessageElement.remove();
+          }, 5000);
         } else {
           const data = await response.json();
+          const addingPhotosForm = document.getElementById(`addingPhotosForm`);
           console.error(data.message);
+          addingPhotosForm.insertAdjacentHTML(
+            `beforeend`,
+              `
+              <h3 id="addingPhotosFormError">Une erreur s'est produite lors de l'envoi du travail. (${data.message})</h3>
+              `
+          );
+          setTimeout(() => {
+            const errorMessageElement = document.getElementById("addingPhotosFormError");
+            errorMessageElement.remove();
+          }, 5000);
         }
       } else {
         console.error("Veuillez sélectionner une image.");
+        const addingPhotosForm = document.getElementById(`addingPhotosForm`);
+          console.error(data.message);
+          addingPhotosForm.insertAdjacentHTML(
+            `beforeend`,
+              `
+              <h3 id="addingPhotosFormError">Veuillez sélectionner une image.</h3>
+              `
+          );
+          setTimeout(() => {
+            const errorMessageElement = document.getElementById("addingPhotosFormError");
+            errorMessageElement.remove();
+          }, 5000);
       }
     } catch (error) {
       console.error("Une erreur s'est produite lors de l'envoi du travail :", error);
       throw error;
+      
     }
   }); 
 
@@ -346,6 +462,7 @@ function addingPhotosMode() {
   );
   returnToEditModeArrow.addEventListener("click", returnToEditMode);
   exitAddingPhotosModeCross.addEventListener("click", exitAddingPhotosMode);
+  document.getElementById(`edit__divOverlay`).addEventListener(`click`, returnToEditMode);
 
   getCategoriesInput();
 }

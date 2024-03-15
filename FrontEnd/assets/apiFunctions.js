@@ -48,3 +48,8 @@ export async function deleteWorkById(id, token) {
   }
 };
 
+export async function getLastWork() {
+  const response = await fetch("http://localhost:5678/api/works");
+  const works = await response.json();
+  return works.slice(-1); // Retourne le dernier élément de la liste
+};
