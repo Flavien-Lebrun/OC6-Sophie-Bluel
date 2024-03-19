@@ -1,7 +1,6 @@
 function login() {
   document.getElementById("loginForm");
   document.addEventListener("submit", async function (event) {
-    console.log("Le bouton submit a été utilisé");
     event.preventDefault();
     const email = document.getElementById("email").value;
     const password = document.getElementById("password").value;
@@ -17,22 +16,22 @@ function login() {
     const data = await response.json();
 
     if (response.ok) {
-      // Stockez le token dans localStorage (ou les cookies, selon votre choix)
+      // Stockez le token dans localStorage
       localStorage.setItem("token", data.token);
       console.log(
         "Les informations de connexion sont correctes, le token a été stocké dans le stockage local"
       );
 
-      // Redirigez l'utilisateur vers une page protégée ou effectuez d'autres actions nécessaires
+      // Redirigez l'utilisateur
       window.location.href = "index.html";
     } else {
-      // Gérez les erreurs d'authentification ici
+      // Gérez les erreurs d'authentification
       console.error(data.message);
       // Afficher un message d'erreur
       const formulaireElement = document.getElementById("loginForm");
       afficherMessageErreur(
         formulaireElement,
-        "Email ou mot de passe incorrect."
+        "Email et / ou mot de passe incorrect."
       );
     }
   });
@@ -48,11 +47,9 @@ function afficherMessageErreur(element, message) {
     messageErreurElement.parentNode.removeChild(messageErreurElement);
     document.removeEventListener("click", supprimerMessageErreur);
   });
-  // setTimeout(() => {
-  //   messageErreurElement.parentNode.removeChild(messageErreurElement);
-  // }, 3000);
+  setTimeout(() => {
+    messageErreurElement.parentNode.removeChild(messageErreurElement);
+  }, 3000);
 }
 
 login();
-
-//sophie.bluel@test.tld S0phie //

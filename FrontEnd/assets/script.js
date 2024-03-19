@@ -6,6 +6,10 @@ async function loadCategories(categoriesList) {
 
   // Nous ajoutons pour chaque catégorie, un button dans l'HTML
   const categoriesContainer = document.querySelector(".categories");
+  categoriesContainer.insertAdjacentHTML(
+    `beforeend`,
+    `<button category="0" selected="true">Tous</button>`
+  );
   categories.forEach((category) => {
     const buttonElement = document.createElement("button");
     buttonElement.setAttribute("category", category.id);
@@ -48,9 +52,9 @@ async function loadLastWork() {
 
   const lastWork = works[works.length - 1]; // Récupérer le dernier élément de la liste
 
-  const figureElement = document.createElement("figure");
-  figureElement.setAttribute("category", lastWork.categoryId);
-  figureElement.classList = `id-${lastWork.id}`;
+  const lastFigureElement = document.createElement("figure");
+  lastFigureElement.setAttribute("category", lastWork.categoryId);
+  lastFigureElement.classList = `id-${lastWork.id}`;
 
   const imgElement = document.createElement("img");
   imgElement.src = lastWork.imageUrl;
@@ -59,16 +63,16 @@ async function loadLastWork() {
   const figcaptionElement = document.createElement("figcaption");
   figcaptionElement.textContent = lastWork.title;
 
-  figureElement.appendChild(imgElement);
-  figureElement.appendChild(figcaptionElement);
+  lastFigureElement.appendChild(imgElement);
+  lastFigureElement.appendChild(figcaptionElement);
 
-  galleryContainer.appendChild(figureElement);
+  galleryContainer.appendChild(lastFigureElement);
 
   const galleryContainerEditMode = document.querySelector(".galleryEditor");
   works.forEach((work) => {
     // Créer un élément figure pour chaque work existant et y ajouter un attribut selon sa catégorie
-    const figureElement = document.createElement("figure");
-    figureElement.classList = `id-${work.id}`;
+    const lastFigureElement = document.createElement("figure");
+    lastFigureElement.classList = `id-${work.id}`;
 
     // Créer un élément img avec une source, un alt ainsi qu'une description visible
     const imgElement = document.createElement("img");
@@ -79,73 +83,67 @@ async function loadLastWork() {
     const deleteImgTrashCan = document.createElement("i");
     deleteImgTrashCan.className = "fa-solid fa-trash-can";
     deleteImgTrashCan.addEventListener("click", async (event) => {
-      try {
-        event.preventDefault();
-        const id = work.id;
-        const token = localStorage.getItem("token");
+      event.preventDefault();
+      const id = work.id;
+      const token = localStorage.getItem("token");
 
-        const response = await deleteWorkById(id, token);
+      const response = await deleteWorkById(id, token);
 
-        if (response.ok) {
-          const workToDelete = document.querySelectorAll(`.id-${id}`);
-          workToDelete.forEach(figure => {
-            figure.remove();
-          });
-        } else {
-          const data = await response.json();
-          console.error(data.message);
-        }
-      } catch (error) {
-        console.error("Une erreur s'est produite lors de l'envoi du travail :", error);
-        throw error;
+      if (response.ok) {
+        const workToDelete = document.querySelectorAll(`.id-${id}`);
+        workToDelete.forEach(figure => {
+          figure.remove();
+        });
+      } else {
+        console.error(response.status);
       }
     });
 
     // Ajoutez les éléments dans leur figure correspondantes
-    figureElement.appendChild(imgElement);
-    figureElement.appendChild(anchorDeleteImgTrashCan);
+    lastFigureElement.appendChild(imgElement);
+    lastFigureElement.appendChild(anchorDeleteImgTrashCan);
     anchorDeleteImgTrashCan.appendChild(deleteImgTrashCan);
 
     // Ajoutez le nouvel élément figure à la div gallery
-    galleryContainerEditMode.appendChild(figureElement);
+    galleryContainerEditMode.appendChild(lastFigureElement);
   });
 }
 
 function filterWorks() {
   // Récupérer l'information des boutons
-  const categoryButtons = document.querySelectorAll(".categories button");
-
-  // Différencier chaque bouton
-  categoryButtons.forEach((button) => {
-    button.addEventListener("click", categoryClicked);
-  });
+  const categoriesContainer = document.querySelector(".categories");
+  categoriesContainer.addEventListener("click", categoryClicked);
 }
 
 function categoryClicked(event) {
-  // Je récupère la NodeList des buttons de catégories
-  const categoryButtons = document.querySelectorAll(".categories button");
-  // Je récupère la value correspondante à la catégorie de chaque button
-  const categoryValue = event.target.getAttribute("category");
+  if (event.target.tagName === 'BUTTON') {
+    // Je récupère la NodeList des buttons de catégories
+    const categoryButtons = document.querySelectorAll(".categories button");
+    // Je récupère la value correspondante à la catégorie de chaque button
+    const categoryValue = event.target.getAttribute("category");
 
-  // J'enlève l'attribut selected à tous les buttons
-  categoryButtons.forEach((button) => {
-    button.removeAttribute("selected");
-  });
-  // J'ajoute l'attribut selected au button target lors du click
-  event.target.setAttribute("selected", true);
-  // Je récupère la NodeList de toutes les figures dans la gallery
-  const allFigures = document.querySelectorAll(".gallery figure");
-  // Pour chacune des figures, je récupère la valeur de son attribut category et l'énonce
-  allFigures.forEach((figure) => {
-    const figureCategory = figure.getAttribute("category");
+    // J'enlève l'attribut selected à tous les buttons
+    categoryButtons.forEach((button) => {
+      button.removeAttribute("selected");
+    });
+    // J'ajoute l'attribut selected au button target lors du click
+    event.target.setAttribute("selected", true);
+    // Je récupère la NodeList de toutes les figures dans la gallery
+    const allFigures = document.querySelectorAll(".gallery figure");
+    // Pour chacune des figures, je récupère la valeur de son attribut category et l'énonce
+    allFigures.forEach((figure) => {
+      const figureCategory = figure.getAttribute("category");
 
-    // Si le bouton "Tous" est sélectionné,
-    if (categoryValue == 0 || figureCategory === categoryValue) {
-      figure.style.display = "block";
-    } else {
-      figure.style.display = "none";
-    }
-  });
+      // Si le bouton "Tous" est sélectionné,
+      if (categoryValue == 0 || figureCategory === categoryValue) {
+        figure.style.display = "block";
+      } else {
+        figure.style.display = "none";
+      }
+    });
+  } else {
+    return
+  }
 }
 
 let preventDefaultEnabled = true;
@@ -153,12 +151,9 @@ let preventDefaultEnabled = true;
 function connectionStatus() {
   // Je récupère le token d'authentification via le local storage en créant une constante
   const userToken = localStorage.getItem("token");
-
   const loginButton = document.getElementById("connectionStatusAnchor");
-
   // Gestion du bouton "Modifier" en sélectionnant la div vide déjà existante (définie en dehors de la condition pour éviter la répétition)
   const editDiv = document.querySelector(".portfolio__div__edit");
-
   // Gestion du header
   const header = document.querySelector("header");
 
@@ -181,7 +176,16 @@ function connectionStatus() {
       // Retirer le blocage d'évènement lors du click
       loginButton.removeEventListener("click", logoutHandler);
       preventDefaultEnabled = true;
-      connectionStatus();
+      loginButton.textContent = "login";
+
+      // Afficher à nouveau la grille des catégories
+      const categoriesContainer = document.querySelector(".categories");
+      categoriesContainer.style.display = "flex";
+
+      // Supprimer la <div> "Mode édition" ainsi que reinitialiser la margin du header
+      header.removeChild(document.getElementById("header__editDiv"));
+      header.style.marginTop = "50px";
+      (document.getElementById("portfolio__div")).removeChild(document.getElementById("portfolio__div__edit"));
     };
 
     loginButton.addEventListener("click", logoutHandler);
@@ -210,22 +214,10 @@ function connectionStatus() {
       </div>`
     );
 
-    document.getElementById("editorDiv").addEventListener("click", editPopUp);
+    const editorDiv = document.getElementById("editorDiv");
+    editorDiv.addEventListener("click", editPopUp);
   } else {
-    loginButton.textContent = "login";
-
-    // Afficher à nouveau la grille des catégories
-    const categoriesContainer = document.querySelector(".categories");
-    categoriesContainer.style.display = "flex";
-
-    // Supprimer la <div> "Mode édition" ainsi que reinitialiser la margin du header
-    header.removeChild(document.getElementById("header__editDiv"));
-    header.style.marginTop = "50px";
-
-    // Supprimer le bouton modifier s'il était présent
-    while (editDiv.firstChild) {
-      editDiv.removeChild(editDiv.firstChild);
-    }
+    return
   }
 }
 
@@ -271,7 +263,7 @@ async function getWorksEditMode(worksList) {
   works.forEach((work) => {
     // Créer un élément figure pour chaque work existant et y ajouter un attribut selon sa catégorie
     const figureElement = document.createElement("figure");
-    figureElement.classList = `id-${work.id}`;
+    figureElement.classList.add(`id-${work.id}`);
 
     // Créer un élément img avec une source, un alt ainsi qu'une description visible
     const imgElement = document.createElement("img");
@@ -282,25 +274,32 @@ async function getWorksEditMode(worksList) {
     const deleteImgTrashCan = document.createElement("i");
     deleteImgTrashCan.className = "fa-solid fa-trash-can";
     deleteImgTrashCan.addEventListener("click", async (event) => {
-      try {
-        event.preventDefault();
-        const id = work.id;
-        const token = localStorage.getItem("token");
+      event.preventDefault();
+      const id = work.id;
+      const token = localStorage.getItem("token");
 
-        const response = await deleteWorkById(id, token);
+      const response = await deleteWorkById(id, token);
 
-        if (response.ok) {
-          const workToDelete = document.querySelectorAll(`.id-${id}`);
-          workToDelete.forEach(figure => {
-            figure.remove();
-          });
+      if (response.ok) {
+        const workToDelete = document.querySelectorAll(`.id-${id}`);
+        workToDelete.forEach(figure => {
+          figure.remove();
+        });
+      } else {
+        if (response.status === 401) {
+          console.error("Une erreur s'est produite lors de l'envoi du travail :", response.status);
+
+          deleteImgTrashCan.style.backgroundColor = "red";
+          setTimeout(() => {
+            deleteImgTrashCan.style.backgroundColor = "black";
+          }, 1000);
+          const errorButton = document.getElementById("submitPhotoInput");
+          errorButton.style.backgroundColor = "red";
+          errorButton.style.width = "340px";
+          errorButton.value = "Token erroné, reconnectez-vous";
         } else {
-          const data = await response.json();
-          console.error(data.message);
+          console.error("Une erreur s'est produite lors de l'envoi du travail :", response.status);
         }
-      } catch (error) {
-        console.error("Une erreur s'est produite lors de l'envoi du travail :", error);
-        throw error;
       }
     });
 
@@ -370,80 +369,75 @@ function addingPhotosMode() {
     }
   });
 
-  const titleInput = document.getElementById("title");
-  const categorySelect = document.getElementById("categories");
-  const submitButton = document.getElementById("fillInPhotosFormSubmitButton");
-
-  imageInput.addEventListener("input", toggleSubmitButton);
-  titleInput.addEventListener("input", toggleSubmitButton);
-  categorySelect.addEventListener("change", toggleSubmitButton);
-
   function toggleSubmitButton() {
-      // Vérifier si tous les champs sont remplis pour avoir une valeur de isFilled true ou false
-      const isFilled = imageInput.value.trim() !== "" && titleInput.value.trim() !== "" && categorySelect.value !== "";
 
-      // Activer ou désactiver le bouton de soumission en fonction de l'état des champs
-      if (isFilled) {
-          submitButton.removeAttribute("disabled");
-          submitButton.style.backgroundColor = "#1D6154"; // Changez la couleur de fond selon vos besoins
-      } else {
-          submitButton.setAttribute("disabled", true);
-          submitButton.style.backgroundColor = "#A7A7A7"; // Réinitialiser la couleur de fond
-      }
+    const titleInput = document.getElementById("title");
+    const categorySelect = document.getElementById("categories");
+    const submitButton = document.getElementById("fillInPhotosFormSubmitButton");
+
+    // Vérifier si tous les champs sont remplis pour avoir une valeur de isFilled true ou false
+    const isFilled = imageInput.value.trim() !== "" && titleInput.value.trim() !== "" && categorySelect.value !== "";
+
+    // Activer ou désactiver le bouton de soumission en fonction de l'état des champs
+    if (isFilled) {
+        submitButton.removeAttribute("disabled");
+        submitButton.style.backgroundColor = "#1D6154";
+    } else {
+        submitButton.setAttribute("disabled", true);
+        submitButton.style.backgroundColor = "#A7A7A7";
+    }
   }
 
+    document.getElementById("fillInPhotosForm").addEventListener("input", toggleSubmitButton);
+    document.getElementById("categories").addEventListener("change", toggleSubmitButton);
+
   document.getElementById("fillInPhotosForm").addEventListener("submit", async (event) => {
-    try {
-      event.preventDefault();
-      const formData = new FormData();
-      const token = localStorage.getItem("token");
-      const title = document.getElementById("title").value;
-      const categoryId = document.getElementById("categories").value;
-      const imageInput = document.getElementById("imageInput").files;
-      if (imageInput.length > 0) {
-        formData.append("image", imageInput[0]);
-        formData.append("title", title);
-        formData.append("category", categoryId);
+    event.preventDefault();
+    const formData = new FormData();
+    const token = localStorage.getItem("token");
+    const title = document.getElementById("title").value;
+    const categoryId = document.getElementById("categories").value;
+    const imageInput = document.getElementById("imageInput").files;
+    if (imageInput.length > 0) {
+      formData.append("image", imageInput[0]);
+      formData.append("title", title);
+      formData.append("category", categoryId);
 
-        const response = await sendWork(formData, token);
+      const response = await sendWork(formData, token);
 
-        if (response.ok) {
-          loadLastWork();
-          resetSendWorkForm();
-        } else {
-          const data = await response.json();
-          const fillInPhotosForm = document.getElementById(`fillInPhotosForm`);
-          console.error(data.message);
-          fillInPhotosForm.insertAdjacentHTML(
-            `beforeend`,
-              `
-              <p id="addingPhotosFormError">Une erreur s'est produite lors de l'envoi du travail. (Erreur : ${response.status})</p>
-              `
-          );
-          setTimeout(() => {
-            const errorMessageElement = document.getElementById("addingPhotosFormError");
-            errorMessageElement.remove();
-          }, 5000);
-        }
+      if (response.ok) {
+        loadLastWork();
+        resetSendWorkForm();
       } else {
-        console.error("Veuillez sélectionner une image.");
-        const addingPhotosForm = document.getElementById(`addingPhotosForm`);
-          console.error(data.message);
-          addingPhotosForm.insertAdjacentHTML(
-            `beforeend`,
-              `
-              <h3 id="addingPhotosFormError">Veuillez sélectionner une image.</h3>
-              `
-          );
-          setTimeout(() => {
-            const errorMessageElement = document.getElementById("addingPhotosFormError");
-            errorMessageElement.remove();
-          }, 5000);
+        const fillInPhotosForm = document.getElementById(`fillInPhotosForm`);
+        console.error(response.status);
+        submitButton.style.backgroundColor = "red";
+        fillInPhotosForm.insertAdjacentHTML(
+          `beforeend`,
+            `
+            <p id="addingPhotosFormError">Une erreur s'est produite lors de l'envoi du travail. (Erreur : ${response.status})</p>
+            `
+        );
+        setTimeout(() => {
+          const errorMessageElement = document.getElementById("addingPhotosFormError");
+          errorMessageElement.remove();
+          submitButton.style.backgroundColor = "#1D6154";
+        }, 5000);
       }
-    } catch (error) {
-      console.error("Une erreur s'est produite lors de l'envoi du travail :", error);
-      throw error;
-      
+    } else {
+      console.error("Veuillez sélectionner une image.");
+      const addingPhotosForm = document.getElementById(`addingPhotosForm`);
+      console.error(response.status);
+      addingPhotosForm.insertAdjacentHTML(
+        `beforeend`,
+          `
+          <h3 id="addingPhotosFormError">Veuillez sélectionner une image.</h3>
+          `
+      );
+      setTimeout(() => {
+        const errorMessageElement = document.getElementById("addingPhotosFormError");
+        errorMessageElement.remove();
+      }, 5000);
     }
   }); 
 

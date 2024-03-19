@@ -38,15 +38,19 @@ export async function deleteWorkById(id, token) {
     },
   });
   return response;
-
   } catch (error) {
-    console.error("Une erreur s'est produite lors de la suppression du travail :", error);
+    console.error("Une erreur s'est produite lors de la suppression du travail :", response.status);
     throw error;
   }
 };
 
 export async function getLastWork() {
-  const response = await fetch("http://localhost:5678/api/works");
-  const works = await response.json();
-  return works.slice(-1); // Retourne le dernier élément de la liste
+  try {
+    const response = await fetch("http://localhost:5678/api/works");
+    const works = await response.json();
+    return works.slice(-1);
+  } catch (error) {
+    console.error("Une erreur s'est produite lors du chargement du dernier travail :", response.status);
+    throw error;
+  }
 };

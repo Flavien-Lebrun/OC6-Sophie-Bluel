@@ -508,6 +508,7 @@ footer nav ul {
 .galleryEditor figure a i {
 	position: relative;
 	background-color: black;
+	transition: background-color 0.3s ease;
 	color: white;
 	padding: 4px;
 	border-radius: 3px;
