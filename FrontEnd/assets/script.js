@@ -161,7 +161,7 @@ function connectionStatus() {
   if (userToken) {
     // // Ajoutez la div à la fin du header et augmenter la margin top du header
     // header.appendChild(editDivHeader);
-    header.style.marginTop = "75px";
+    header.style.marginTop = "100px";
 
     // Je change l'élément <a> de login en élément <a> de logout
     loginButton.textContent = "logout";
@@ -180,8 +180,7 @@ function connectionStatus() {
 
       // Afficher à nouveau la grille des catégories
       const categoriesContainer = document.querySelector(".categories");
-      categoriesContainer.style.display = "flex";
-
+      categoriesContainer.style.visibility = "visible";
       // Supprimer la <div> "Mode édition" ainsi que reinitialiser la margin du header
       header.removeChild(document.getElementById("header__editDiv"));
       header.style.marginTop = "50px";
@@ -192,8 +191,8 @@ function connectionStatus() {
 
     // Masquer la grille des catégories
     const categoriesContainer = document.querySelector(".categories");
-    categoriesContainer.style.display = "none";
-
+    categoriesContainer.style.visibility = "hidden";
+    
     header.insertAdjacentHTML(
       `beforeend`,
       `
