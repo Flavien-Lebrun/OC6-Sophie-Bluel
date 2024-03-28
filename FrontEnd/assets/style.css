@@ -347,14 +347,14 @@ footer nav ul {
 	background-color: black;
 	position: fixed;
 	color: white;
-	display: flex;
+	display: none;
 	justify-content: center;
 	padding: 22px 0px 22px 0px;
 	width: 100%;
 	top: 0%;
 	left: 0%;
 	font-size: 1.1em;
-	z-index: 1;
+	z-index: 1
 }
 
 .fa-pen-to-square {
@@ -370,6 +370,11 @@ footer nav ul {
 	position: absolute;
 	top: 26%;
 	margin-left: calc(50% + 130px);
+	display: none;
+}
+
+.categories {
+	display: none;
 }
 
 #editorDiv {

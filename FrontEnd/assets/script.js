@@ -6,10 +6,7 @@ async function loadCategories(categoriesList) {
 
   // Nous ajoutons pour chaque catégorie, un button dans l'HTML
   const categoriesContainer = document.querySelector(".categories");
-  categoriesContainer.insertAdjacentHTML(
-    `beforeend`,
-    `<button category="0" selected="true">Tous</button>`
-  );
+  categoriesContainer.style.display = "flex";
   categories.forEach((category) => {
     const buttonElement = document.createElement("button");
     buttonElement.setAttribute("category", category.id);
@@ -192,26 +189,12 @@ function connectionStatus() {
     // Masquer la grille des catégories
     const categoriesContainer = document.querySelector(".categories");
     categoriesContainer.style.visibility = "hidden";
-    
-    header.insertAdjacentHTML(
-      `beforeend`,
-      `
-        <div id="header__editDiv">
-          <i class="fa-regular fa-pen-to-square" aria-hidden="true"></i>
-          <p>Mode édition</p>
-        </div>`
-    );
 
-    document.getElementById("portfolio__div").insertAdjacentHTML(
-      `beforeend`,
-      `
-      <div id="portfolio__div__edit">
-        <div id="editorDiv">
-          <i class="fa-regular fa-pen-to-square" aria-hidden="true"></i>
-          <p>modifier</p>
-        </div>
-      </div>`
-    );
+    const header__editDiv = document.getElementById("header__editDiv");
+    header__editDiv.style.display = "flex";
+
+    const portfolio__div__edit = document.getElementById("portfolio__div__edit");
+    portfolio__div__edit.style.display = "flex";
 
     const editorDiv = document.getElementById("editorDiv");
     editorDiv.addEventListener("click", editPopUp);
